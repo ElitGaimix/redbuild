@@ -1,0 +1,56 @@
+name: Redbuild
+version: 1.0
+author: ElitGaimix
+main: elitgaimix.redteam.fr.Plugin
+api-version: 1.17
+commands:
+  npc:
+    permission: redteam.npc
+  Menu:
+    aliases:
+      - u
+  Plot:
+    aliases:
+      - p
+  tphere:
+    aliases:
+      - tph
+    permission: redteam.tp
+  build:
+    aliases:
+      - bu
+    permission: op
+  unicode:
+    aliases:
+      - uni
+    permission: op
+  tp:
+    permission: redteam.tp
+  invsee:
+    aliases:
+      - ie
+    permission: redteam.invsee
+permission:
+  redteam.build:
+    description: Permission for build on the server
+    default: op
+  redteam.tp:
+    description: Permission for tp on the serveur
+    default: op
+  redteam.npc:
+    description: Permission for npc
+    default: op
+  redteam.invsee:
+    description: Permission for see the inventory of the player
+    default: op
+  redteam.fondateur:
+    description: tablist
+    default: op
+  redteam.*:
+    description: RedTeam permission
+    default: op
+    children:
+      redteam.invsse: true
+      redteam.tp: true
+      redteam.build: true
+      redteam.npc: true

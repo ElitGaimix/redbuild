@@ -1,0 +1,39 @@
+--- a/net/minecraft/network/protocol/game/ServerboundChatPacket.java
++++ b/net/minecraft/network/protocol/game/ServerboundChatPacket.java
+@@ -10,6 +10,7 @@
+ import net.minecraft.util.StringUtil;
+ 
+ public class ServerboundChatPacket implements Packet<ServerGamePacketListener> {
++
+     public static final Duration MESSAGE_EXPIRES_AFTER = Duration.ofMinutes(5L);
+     private final String message;
+     private final Instant timeStamp;
+@@ -24,7 +25,7 @@
+     }
+ 
+     public ServerboundChatPacket(FriendlyByteBuf buf) {
+-        this.message = buf.readUtf(256);
++        this.message = org.apache.commons.lang3.StringUtils.normalizeSpace(buf.readUtf(256)); // CraftBukkit - see PlayerConnection
+         this.timeStamp = buf.readInstant();
+         this.saltSignature = new Crypt.SaltSignaturePair(buf);
+         this.signedPreview = buf.readBoolean();
+@@ -38,9 +39,17 @@
+         buf.writeBoolean(this.signedPreview);
+     }
+ 
+-    @Override
+-    public void handle(ServerGamePacketListener listener) {
++    // Spigot Start
++    // Paper start - untrash chat event handling
++    public static final java.util.concurrent.ExecutorService executors = java.util.concurrent.Executors.newCachedThreadPool(
++            new com.google.common.util.concurrent.ThreadFactoryBuilder().setDaemon( true ).setNameFormat( "Async Chat Thread - #%d" ).setUncaughtExceptionHandler(new net.minecraft.DefaultUncaughtExceptionHandlerWithName(net.minecraft.server.MinecraftServer.LOGGER)).build() ); // Paper
++    public void handle(final ServerGamePacketListener listener) {
++        if (this.message.startsWith("/")) {
++            // Just don't allow this instead of creating gigantic diff when untrashing more Spigot code
++            return;
++        }
+         listener.handleChat(this);
++        // Paper end - untrash chat event handling
+     }
+ 
+     public String getMessage() {

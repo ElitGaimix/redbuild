@@ -1,0 +1,40 @@
+--- a/net/minecraft/network/protocol/game/ClientboundPlayerChatPacket.java
++++ b/net/minecraft/network/protocol/game/ClientboundPlayerChatPacket.java
+@@ -14,9 +14,20 @@
+ import net.minecraft.network.protocol.Packet;
+ import net.minecraft.util.Crypt;
+ 
+-public record ClientboundPlayerChatPacket(Component signedContent, Optional<Component> unsignedContent, int typeId, ChatSender sender, Instant timeStamp, Crypt.SaltSignaturePair saltSignature) implements Packet<ClientGamePacketListener> {
++// Paper start
++public record ClientboundPlayerChatPacket(@org.jetbrains.annotations.Nullable net.kyori.adventure.text.Component adventure$message, Component signedContent, Optional<Component> unsignedContent, int typeId, ChatSender sender, Instant timeStamp, Crypt.SaltSignaturePair saltSignature) implements Packet<ClientGamePacketListener> {
+     private static final Duration MESSAGE_EXPIRES_AFTER = ServerboundChatPacket.MESSAGE_EXPIRES_AFTER.plus(Duration.ofMinutes(2L));
+ 
++    public ClientboundPlayerChatPacket(Component signedContent, Optional<Component> unsignedContent, int typeId, ChatSender sender, Instant timeStamp, Crypt.SaltSignaturePair saltSignature) {
++        this(null, signedContent, unsignedContent, typeId, sender, timeStamp, saltSignature);
++    }
++
++    @Deprecated // doesn't support signed messages
++    public ClientboundPlayerChatPacket(net.kyori.adventure.text.Component adventure$message, int typeId, ChatSender sender, Instant timeStamp) {
++        this(adventure$message, Component.empty(), Optional.empty(), typeId, sender, timeStamp, net.minecraft.util.Crypt.SaltSignaturePair.EMPTY);
++    }
++    // Paper end
++
+     public ClientboundPlayerChatPacket(FriendlyByteBuf buf) {
+         this(buf.readComponent(), buf.readOptional(FriendlyByteBuf::readComponent), buf.readVarInt(), new ChatSender(buf), buf.readInstant(), new Crypt.SaltSignaturePair(buf));
+     }
+@@ -24,7 +35,15 @@
+     @Override
+     public void write(FriendlyByteBuf buf) {
+         buf.writeComponent(this.signedContent);
++        // Paper start
++        //TODO Proper API and writing signed contents
++        if (this.adventure$message != null) {
++            buf.writeBoolean(true);
++            buf.writeComponent(this.adventure$message);
++        } else {
+         buf.writeOptional(this.unsignedContent, FriendlyByteBuf::writeComponent);
++        }
++        // Paper end
+         buf.writeVarInt(this.typeId);
+         this.sender.write(buf);
+         buf.writeInstant(this.timeStamp);

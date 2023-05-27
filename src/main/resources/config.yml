@@ -1,0 +1,23 @@
+repertory:
+  player: /profiles/
+  main: /main/
+plot:
+  world: plotworld
+  cornerX: 0
+  cornerZ: 0
+  lastcornerX: 12
+  lastcornerZ: 12
+  tail: 1
+  bordertail: 1
+resource:
+  force: false
+spawn:
+  lobby:
+    x: -80
+    y: 40
+    z: -4
+    yaw: 135
+    pitch: 0
+    map: plotworld
+message:
+  break: false

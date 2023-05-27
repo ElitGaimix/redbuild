@@ -1,0 +1,24 @@
+--- a/net/minecraft/world/level/levelgen/Beardifier.java
++++ b/net/minecraft/world/level/levelgen/Beardifier.java
+@@ -36,9 +36,10 @@
+         int j = chunkPos.getMinBlockZ();
+         ObjectList<Beardifier.Rigid> objectList = new ObjectArrayList<>(10);
+         ObjectList<JigsawJunction> objectList2 = new ObjectArrayList<>(32);
+-        structureManager.startsForStructure(chunkPos, (structure) -> {
++        // Paper start - replace for each
++        for (net.minecraft.world.level.levelgen.structure.StructureStart structureStart : structureManager.startsForStructure(chunkPos, (structure) -> {
+             return structure.terrainAdaptation() != TerrainAdjustment.NONE;
+-        }).forEach((structureStart) -> {
++        })) {
+             TerrainAdjustment terrainAdjustment = structureStart.getStructure().terrainAdaptation();
+ 
+             for(StructurePiece structurePiece : structureStart.getPieces()) {
+@@ -63,7 +64,7 @@
+                 }
+             }
+ 
+-        });
++        } // Paper
+         return new Beardifier(objectList.iterator(), objectList2.iterator());
+     }
+ 
