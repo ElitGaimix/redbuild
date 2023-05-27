@@ -45,6 +45,7 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelPromise;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundAddPlayerPacket;
 import net.minecraft.network.protocol.game.ClientboundAnimatePacket;
@@ -52,6 +53,7 @@ import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
+import net.minecraft.network.protocol.game.ClientboundTabListPacket;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.network.protocol.game.ServerGamePacketListener;
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
@@ -82,11 +84,12 @@ public class PlayerListener implements Listener {
 
         Player player = event.getPlayer();
         if(player.hasPermission("redteam.fondateur")){
-            player.setPlayerListName("§4[Fondateur] " + player.getName());
+            player.setDisplayName("§4[Fondateur] " + player.getName());
         }
+        Component header = Component.Serializer.fromJson("[\"\",{\"text\":\"caca\",\"obfuscated\":true,\"color\":\"dark_purple\"},{\"text\":\" \\u2583\\u2585\\u2587\\u2589 RedBuild \\u2589\\u2587\\u2585\\u2583 \",\"color\":\"gold\"},{\"text\":\"caca\",\"obfuscated\":true,\"color\":\"dark_purple\"}]");
+        Component footer = Component.Serializer.fromJson("{\"text\":\"Bienvenue sur RedBuild !\",\"color\":\"gray\"}");
 
-        player.setPlayerListHeader("§6§lRedBuild");
-                player.setPlayerListFooter("§7Bienvenue sur RedBuild !");
+        NPCUtils.networkManager(player).send(new ClientboundTabListPacket(header, footer));
         p.teleport(new Location(Bukkit.getWorld(plugin.getConfig().getString("spawn.lobby.map")),
                 plugin.getConfig().getInt("spawn.lobby.x"), plugin.getConfig().getInt("spawn.lobby.y"),
                 plugin.getConfig().getInt("spawn.lobby.z"),plugin.getConfig().getInt("spawn.lobby.yaw"),plugin.getConfig().getInt("spawn.lobby.pitch")));
