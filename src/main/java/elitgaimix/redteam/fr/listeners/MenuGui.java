@@ -7,6 +7,8 @@ import elitgaimix.redteam.fr.json.load.EditorSign;
 import elitgaimix.redteam.fr.json.load.EditorSignEnum;
 import elitgaimix.redteam.fr.json.npc.MAINPC;
 import elitgaimix.redteam.fr.json.profile.Profile;
+import net.minecraft.network.protocol.game.ClientboundPlayerCombatKillPacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 
 import java.io.File;
