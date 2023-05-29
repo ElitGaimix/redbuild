@@ -1,14 +1,20 @@
 package elitgaimix.redteam.fr.listeners;
 
 import java.io.File;
+import java.text.Format;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
@@ -44,7 +50,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelPromise;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundAddPlayerPacket;
@@ -80,11 +85,13 @@ public class PlayerListener implements Listener {
 
         Player p = event.getPlayer();
         injectPlayer(p);
-//This MUST be size DEFAULT, as older versions could only store 20 players
-
+        BossBar bar = Bukkit.createBossBar("", BarColor.GREEN,BarStyle.SEGMENTED_6);
+        bar.setTitle(ChatColor.RED + "Vous êtes en train de déplacer un npc(faite \"/setnpc\" pour set la position)");
+        bar.setVisible(true);
+        bar.addPlayer(p);
         Player player = event.getPlayer();
         if(player.hasPermission("redteam.fondateur")){
-            player.setDisplayName("§4[Fondateur] " + player.getName());
+            player.setPlayerListName("§4[Fondateur] " + player.getName());
         }
         Component header = Component.Serializer.fromJson("[\"\",{\"text\":\"caca\",\"obfuscated\":true,\"color\":\"dark_purple\"},{\"text\":\" \\u2583\\u2585\\u2587\\u2589 RedBuild \\u2589\\u2587\\u2585\\u2583 \",\"color\":\"gold\"},{\"text\":\"caca\",\"obfuscated\":true,\"color\":\"dark_purple\"}]");
         Component footer = Component.Serializer.fromJson("{\"text\":\"Bienvenue sur RedBuild !\",\"color\":\"gray\"}");
@@ -112,8 +119,8 @@ public class PlayerListener implements Listener {
             npc.getGameProfile().getProperties().put("textures",
                     new Property("textures", allnpc.get(n).getTextureValue(), allnpc.get(n).getTextureSignature()));
             ((CraftPlayer) p).getHandle().connection
-                    .send(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER,
-                            npc));
+                  .send(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER,
+                        npc));
             ((CraftPlayer) p).getHandle().connection.send(new ClientboundAddPlayerPacket(npc));
             ((CraftPlayer) p).getHandle().connection.send(new ClientboundTeleportEntityPacket(npc));
             ((CraftPlayer) p).getHandle().connection.send(new ClientboundMoveEntityPacket.Rot(npc.getId(),
@@ -203,13 +210,13 @@ public class PlayerListener implements Listener {
                             itemm.setDisplayName("§4Delete NPC");
                     item.setItemMeta(itemm);
                     inv.setItem(4, item);
+
                     ItemStack item1 = new ItemStack(Material.WRITABLE_BOOK, 1);
                     ItemMeta itemm1 = item1
                             .getItemMeta();
                             itemm1.setDisplayName("§dRename NPC");
                             item1.setItemMeta(itemm1);
-                    inv.setItem(3, item1);
-                    
+                    inv.setItem(3, item1);                  
 
                     p.openInventory(inv);
                     break;
@@ -252,10 +259,6 @@ public class PlayerListener implements Listener {
             }
             super.channelRead(channelHandlerContext, msg);
         }
-        @Override
-        public void write(ChannelHandlerContext channelHandlerContext, Object packet, ChannelPromise channelPromise) throws Exception{
-            super.write(channelHandlerContext, packet, channelPromise);
-        }
     };
     ChannelPipeline pipeline = NPCUtils.channel(player).pipeline();
     pipeline.addBefore("packet_handler", player.getName(), channelDuplexHandler);
@@ -266,25 +269,29 @@ public class PlayerListener implements Listener {
     public void SignUpdateEvent(SignUpdateEvent e){
         Player player = e.getPlayer();
         for(EditorSign eSign : plugin.OpenEditorSign){
-            player.sendMessage("1");
-            player.sendMessage(e.getPos().getX()+" " + eSign.getX());
-            player.sendMessage(e.getPos().getZ()+" " + eSign.getY());
-            player.sendMessage(e.getPos().getX()+" " + eSign.getZ());
-            if(e.getPos().getX() == eSign.getX() && e.getPos().getY() == 1 && e.getPos().getZ() == eSign.getZ()){
-                player.sendMessage("2");
-                if(eSign.getType() == EditorSignEnum.NPCRENAME){
-                    player.sendMessage("3");
-                    for(MAINPC npc : plugin.npc.getNpc()){
-                        player.sendMessage("4");
-                        if(npc.getEntityID() == eSign.getEntityID()){
-                            player.sendMessage("5");
-                            for(Player p : Bukkit.getServer().getOnlinePlayers()){
-                                player.sendMessage("6");
+            if(e.getPos().getX() == eSign.getX() && e.getPos().getY() == 1 && e.getPos().getZ() == eSign.getZ() && eSign.getType() == EditorSignEnum.NPCRENAME){      
+                    for(MAINPC npc : plugin.npc.getNpc()){                       
+                        if(npc.getEntityID() == eSign.getEntityID()){                          
+                            for(Player p : Bukkit.getServer().getOnlinePlayers()){                               
                                 NPCUtils.networkManager(player).send(new ClientboundRemoveEntitiesPacket(npc.getEntityID()));
+                                
                                 ServerLevel nmsworld = ((CraftWorld) Bukkit.getServer().getWorld(npc.getWorld())).getHandle();
                                 String[] lines = e.getLines();
                                 ServerPlayer ServerNPC = new ServerPlayer(((CraftServer) Bukkit.getServer()).getServer(), nmsworld,
-                                new GameProfile(UUID.randomUUID(), lines[1]), null);
+                                new GameProfile(npc.getNPCUUID(), npc.getName()), null);
+                                ServerNPC.setPos(npc.getConpc().getX(), npc.getConpc().getY(),
+                                npc.getConpc().getZ());
+                                ServerNPC.setXRot(npc.getConpc().getYaw());
+                                ServerNPC.setYRot(npc.getConpc().getPitch());
+                                ServerNPC.setYBodyRot(npc.getConpc().getYaw());
+                                ServerNPC.setYHeadRot(npc.getConpc().getYaw());
+                                ServerNPC.setId(npc.getEntityID());
+                                ServerNPC.getGameProfile().getProperties().removeAll("textures");
+                                ServerNPC.getGameProfile().getProperties().put("textures",
+                                new Property("textures", npc.getTextureValue(), npc.getTextureSignature()));
+                                NPCUtils.networkManager(player).send(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.REMOVE_PLAYER,ServerNPC));
+                                ServerNPC = new ServerPlayer(((CraftServer) Bukkit.getServer()).getServer(), nmsworld,
+                                new GameProfile(npc.getNPCUUID(), lines[1]), null);
                                 ServerNPC.setPos(npc.getConpc().getX(), npc.getConpc().getY(),
                                 npc.getConpc().getZ());
                                 ServerNPC.setXRot(npc.getConpc().getYaw());
@@ -322,7 +329,6 @@ public class PlayerListener implements Listener {
                 }
             }
         }
-    }
     @EventHandler
     public void onRespawn(PlayerRespawnEvent e) {
         Player p = e.getPlayer();

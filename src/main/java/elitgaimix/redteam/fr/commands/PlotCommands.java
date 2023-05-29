@@ -18,7 +18,6 @@ import elitgaimix.redteam.fr.json.Plot.PlotFile;
 import elitgaimix.redteam.fr.json.profile.AddPlot;
 import elitgaimix.redteam.fr.json.profile.Profile;
 import elitgaimix.redteam.fr.json.profile.UserPlot;
-import elitgaimix.redteam.fr.json.profile.UserPlotFusion;
 import elitgaimix.redteam.fr.Plugin;
 
 public class PlotCommands implements CommandExecutor {

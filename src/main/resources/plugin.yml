@@ -30,6 +30,10 @@ commands:
     aliases:
       - ie
     permission: redteam.invsee
+  setnpc:
+    aliases:
+      - sc
+    permission: redteam.npc
 permission:
   redteam.build:
     description: Permission for build on the server

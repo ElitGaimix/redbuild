@@ -1,11 +1,14 @@
 package elitgaimix.redteam.fr.json.npc;
 
+import java.util.UUID;
+
 public class MAINPC {
     private String name;
     private String world;
     private String textureValue;
     private String textureSignature;
     private int entityID;
+    private UUID NPCUUID;
     private CONPC conpc;
 
     public String getName() {
@@ -48,6 +51,14 @@ public class MAINPC {
         this.entityID = entityID;
     }
 
+    public UUID getNPCUUID() {
+        return this.NPCUUID;
+    }
+
+    public void setNPCUUID(UUID NPCUUID) {
+        this.NPCUUID = NPCUUID;
+    }
+
     public CONPC getConpc() {
         return this.conpc;
     }
@@ -56,15 +67,17 @@ public class MAINPC {
         this.conpc = conpc;
     }
 
-    public MAINPC(String name, String world, String textureValue, String textureSignature, int entityID, CONPC conpc) {
+
+    public MAINPC(String name, String world, String textureValue, String textureSignature, int entityID, UUID NPCUUID, CONPC conpc) {
         this.name = name;
         this.world = world;
         this.textureValue = textureValue;
         this.textureSignature = textureSignature;
         this.entityID = entityID;
+        this.NPCUUID = NPCUUID;
         this.conpc = conpc;
     }
-
+   
     
 
 }

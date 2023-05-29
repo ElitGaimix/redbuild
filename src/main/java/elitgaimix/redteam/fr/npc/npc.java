@@ -21,6 +21,7 @@ import com.mojang.authlib.properties.Property;
 import elitgaimix.redteam.fr.Plugin;
 import elitgaimix.redteam.fr.fonction.NPCUtils;
 import elitgaimix.redteam.fr.json.FileUtils;
+import elitgaimix.redteam.fr.json.load.NPCDeplace;
 import elitgaimix.redteam.fr.json.npc.CONPC;
 import elitgaimix.redteam.fr.json.npc.MAINPC;
 import elitgaimix.redteam.fr.json.npc.NPCJson;
@@ -45,6 +46,8 @@ public class npc implements CommandExecutor, Listener {
     // @SuppressWarnings("deprecation")
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (sender instanceof Player) {
+        if(cmd.getName().equalsIgnoreCase("npc")){
+        
             String npcname = "";
             Player p = (Player) sender;
             if (args.length > 0) {
@@ -98,20 +101,45 @@ public class npc implements CommandExecutor, Listener {
             }
             NPCJson tamere = new NPCJson(null);
             List<MAINPC> npcen = new ArrayList<MAINPC>();
-            if (Plugin.npc != null && Plugin.npc.getNpc() != null) {
-                tamere = Plugin.npc;
-                npcen = Plugin.npc.getNpc();
+            if (plugin.npc != null && plugin.npc.getNpc() != null) {
+                tamere = plugin.npc;
+                npcen = plugin.npc.getNpc();
             }
-            npcen.add(new MAINPC(npcname, "plotworld", prop.getValue(), prop.getSignature(),entityPlayer.getId(),
+            npcen.add(new MAINPC(npcname, "plotworld", prop.getValue(), prop.getSignature(),entityPlayer.getId(),entityPlayer.getUUID(),
                     new CONPC(ploc.getX(), ploc.getY(), ploc.getZ(), ploc.getYaw(), ploc.getPitch())));
             tamere.setNpc(npcen);
-            Plugin.npc = tamere;
+            plugin.npc = tamere;
 
             FileUtils.saveFile(
                     new File(new File(plugin.getDataFolder(), plugin.getConfig().getString("repertory.main")),
                             "NPC.json"),
                     tamere);
-        }
+        
         return false;
-    }
+    }else if(cmd.getName().equalsIgnoreCase("setnpc")){
+        Player p = (Player) sender;
+        for(NPCDeplace npcDeplace : plugin.NPCDeplace){
+            if(npcDeplace.getPlayer() == p){
+                for(MAINPC npc : plugin.npc.getNpc()){
+                    if(npc.getEntityID() == npcDeplace.getEntityid()){
+                                ServerLevel nmsworld = ((CraftWorld) Bukkit.getServer().getWorld(npc.getWorld())).getHandle();
+                                ServerPlayer ServerNPC = new ServerPlayer(((CraftServer) Bukkit.getServer()).getServer(), nmsworld,
+                                new GameProfile(npc.getNPCUUID(), npc.getName()), null);
+                                ServerNPC.setPos(npc.getConpc().getX(), npc.getConpc().getY(),
+                                npc.getConpc().getZ());
+                                ServerNPC.setXRot(npc.getConpc().getYaw());
+                                ServerNPC.setYRot(npc.getConpc().getPitch());
+                                ServerNPC.setYBodyRot(npc.getConpc().getYaw());
+                                ServerNPC.setYHeadRot(npc.getConpc().getYaw());
+                                ServerNPC.setId(npc.getEntityID());
+                                ServerNPC.getGameProfile().getProperties().removeAll("textures");
+                                ServerNPC.getGameProfile().getProperties().put("textures",
+                                new Property("textures", npc.getTextureValue(), npc.getTextureSignature()));
+                    }
+                }
+                break;
+            }
+        }
+    }}
+    return false;}
 }

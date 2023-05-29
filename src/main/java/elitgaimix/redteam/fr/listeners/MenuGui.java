@@ -10,6 +10,8 @@ import elitgaimix.redteam.fr.json.profile.Profile;
 import net.minecraft.network.protocol.game.ClientboundPlayerCombatKillPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.io.File;
 
@@ -21,6 +23,8 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -36,6 +40,9 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 
 
 
@@ -138,7 +145,21 @@ public class MenuGui implements Listener {
                 for(MAINPC npc : plugin.npc.getNpc()){
                     if(npc.getEntityID() == EntityID){
                         for(Player player : Bukkit.getServer().getOnlinePlayers()){
+                            ServerLevel nmsworld = ((CraftWorld) Bukkit.getServer().getWorld(npc.getWorld())).getHandle();
+                                ServerPlayer ServerNPC = new ServerPlayer(((CraftServer) Bukkit.getServer()).getServer(), nmsworld,
+                                new GameProfile(npc.getNPCUUID(), npc.getName()), null);
+                                ServerNPC.setPos(npc.getConpc().getX(), npc.getConpc().getY(),
+                                npc.getConpc().getZ());
+                                ServerNPC.setXRot(npc.getConpc().getYaw());
+                                ServerNPC.setYRot(npc.getConpc().getPitch());
+                                ServerNPC.setYBodyRot(npc.getConpc().getYaw());
+                                ServerNPC.setYHeadRot(npc.getConpc().getYaw());
+                                ServerNPC.setId(npc.getEntityID());
+                                ServerNPC.getGameProfile().getProperties().removeAll("textures");
+                                ServerNPC.getGameProfile().getProperties().put("textures",
+                                new Property("textures", npc.getTextureValue(), npc.getTextureSignature()));
                             NPCUtils.networkManager(player).send( new ClientboundRemoveEntitiesPacket(npc.getEntityID()));
+                            NPCUtils.networkManager(player).send(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.REMOVE_PLAYER,ServerNPC));
                         }
                     plugin.npc.getNpc().remove(npc);
                     FileUtils.saveFile(
@@ -156,7 +177,7 @@ public class MenuGui implements Listener {
                 p.closeInventory();
                 for(MAINPC npc : plugin.npc.getNpc()){
                     if(npc.getEntityID() == Integer.parseInt(invname)){
-                        plugin.OpenEditorSign.add(new EditorSign((int) p.getLocation().getX(), 1, (int) p.getLocation().getZ(), EditorSignEnum.NPCRENAME, npc.getEntityID()));
+                        plugin.OpenEditorSign.add(new EditorSign( p.getLocation().getBlockX(), 1,  p.getLocation().getBlockZ(), EditorSignEnum.NPCRENAME, npc.getEntityID()));
                         NPCUtils.sendSignData(p,new String[] {"",npc.getName(),"",""});
                         break;
                     }

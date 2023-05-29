@@ -1,11 +1,10 @@
 package elitgaimix.redteam.fr.fonction;
 
-import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_19_R1.block.CraftSign;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
-import elitgaimix.redteam.fr.Plugin;
+
 import io.netty.channel.Channel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.Connection;
@@ -24,6 +23,7 @@ public class NPCUtils {
 		return ((CraftPlayer) player).getHandle().connection;
 		
 	}
+	
 	public static void sendSignData(Player player, String[] lines) {
         if (lines.length != 4) {
             throw new IllegalArgumentException("String line must be of length 4");

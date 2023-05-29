@@ -14,6 +14,7 @@ import elitgaimix.redteam.fr.commands.invsee;
 import elitgaimix.redteam.fr.json.FileUtils;
 import elitgaimix.redteam.fr.json.Plot.PlotFile;
 import elitgaimix.redteam.fr.json.load.EditorSign;
+import elitgaimix.redteam.fr.json.load.NPCDeplace;
 import elitgaimix.redteam.fr.json.load.PlayerFile;
 import elitgaimix.redteam.fr.json.npc.NPCJson;
 import elitgaimix.redteam.fr.json.profile.Profile;
@@ -23,6 +24,7 @@ public class Plugin extends JavaPlugin {
     public static NPCJson npc = new NPCJson(null);
     public static PlayerFile playerfile = new PlayerFile(null);
     public static List<EditorSign> OpenEditorSign = new ArrayList<>();
+    public static List<NPCDeplace> NPCDeplace = new ArrayList<>();
 
     @Override
     public void onEnable() {
@@ -35,6 +37,7 @@ public class Plugin extends JavaPlugin {
         getCommand("unicode").setExecutor(new unicode());
         getCommand("invsee").setExecutor(new invsee());
         getCommand("npc").setExecutor(new npc(this));
+        getCommand("setnpc").setExecutor(new npc(this));
 
         getServer().getPluginManager().registerEvents(new MenuGui(this), this);
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
