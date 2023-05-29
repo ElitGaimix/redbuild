@@ -19,7 +19,6 @@ public class invsee implements CommandExecutor, Listener {
                     Player cible = Bukkit.getServer().getPlayer(args[0]);
                     Inventory inv = cible.getInventory();
                     Inventory ninv = Bukkit.createInventory(null, 45, cible.getName());
-
                     ninv.setContents(inv.getContents());
                     p.openInventory(ninv);
 
