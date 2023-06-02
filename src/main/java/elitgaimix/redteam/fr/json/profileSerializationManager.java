@@ -15,7 +15,7 @@ public class profileSerializationManager {
         return gson.toJson(obj);
     }
 
-    public static Object deserialize(String json, Class clss) {
+    public static <T> Object deserialize(String json, Class<T> clss) {
         return gson.fromJson(json, clss);
 
     }

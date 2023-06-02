@@ -1,20 +1,14 @@
 package elitgaimix.redteam.fr.listeners;
 
 import java.io.File;
-import java.text.Format;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
 import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
@@ -85,10 +79,6 @@ public class PlayerListener implements Listener {
 
         Player p = event.getPlayer();
         injectPlayer(p);
-        BossBar bar = Bukkit.createBossBar("", BarColor.GREEN,BarStyle.SEGMENTED_6);
-        bar.setTitle(ChatColor.RED + "Vous êtes en train de déplacer un npc(faite \"/setnpc\" pour set la position)");
-        bar.setVisible(true);
-        bar.addPlayer(p);
         Player player = event.getPlayer();
         if(player.hasPermission("redteam.fondateur")){
             player.setPlayerListName("§4[Fondateur] " + player.getName());
@@ -193,6 +183,7 @@ public class PlayerListener implements Listener {
     public void onLeave(PlayerQuitEvent e){
         removePlayer(e.getPlayer());
     }
+    
     @SuppressWarnings("deprecation")
     @EventHandler
     public void PlayerInteractNPCEvent(PlayerInteracteAtNPCEvent e){
@@ -216,8 +207,14 @@ public class PlayerListener implements Listener {
                             .getItemMeta();
                             itemm1.setDisplayName("§dRename NPC");
                             item1.setItemMeta(itemm1);
-                    inv.setItem(3, item1);                  
-
+                    inv.setItem(3, item1);  
+                                    
+                    ItemStack item2 = new ItemStack(Material.ENDER_PEARL, 1);
+                    ItemMeta itemm2 = item2
+                            .getItemMeta();
+                            itemm2.setDisplayName("§aMove NPC");
+                            item2.setItemMeta(itemm2);
+                    inv.setItem(5, item2);
                     p.openInventory(inv);
                     break;
                 }
@@ -394,7 +391,6 @@ public class PlayerListener implements Listener {
 
         Player p = e.getPlayer();
         if ((e.getAction().equals(Action.RIGHT_CLICK_BLOCK) || e.getAction().equals(Action.LEFT_CLICK_BLOCK))
-                && Objects.equals(this.plugin.getConfig().getString("plot.world"), p.getWorld().getName())
                 && p.hasPermission("redteam.build") != true) {
             Chunk PlayerChunk = e.getClickedBlock().getChunk();
             Profile profile = FileUtils.openProfileFile(new File(saveDir, p.getName() + ".json"), p);

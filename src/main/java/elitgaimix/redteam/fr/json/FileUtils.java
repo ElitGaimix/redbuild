@@ -20,7 +20,7 @@ public class FileUtils {
     private static Plugin plugin;
 
     public FileUtils(Plugin pluggin) {
-        this.plugin = pluggin;
+        FileUtils.plugin = pluggin;
     }
 
     public static void saveFile(File file, Object profile) {
@@ -30,7 +30,7 @@ public class FileUtils {
 
     }
 
-    public static Object openFile(File file, Class clss) {
+    public static <T> Object openFile(File file, Class<T> clss) {
         if (file.exists()) {
             final String json = FileUtils.loadContent(file);
             return profileSerializationManager.deserialize(json, clss);

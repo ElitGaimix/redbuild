@@ -1,5 +1,6 @@
 package elitgaimix.redteam.fr.fonction;
 
+import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_19_R1.block.CraftSign;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -8,6 +9,7 @@ import org.bukkit.entity.Player;
 import io.netty.channel.Channel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundOpenSignEditorPacket;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -23,7 +25,11 @@ public class NPCUtils {
 		return ((CraftPlayer) player).getHandle().connection;
 		
 	}
-	
+	public static void sendForAll(Packet<?> packet){
+		for(Player player : Bukkit.getServer().getOnlinePlayers()){
+			playerConnection(player).send(packet);
+		}
+	}
 	public static void sendSignData(Player player, String[] lines) {
         if (lines.length != 4) {
             throw new IllegalArgumentException("String line must be of length 4");

@@ -29,6 +29,7 @@ import net.minecraft.network.protocol.game.ClientboundAddPlayerPacket;
 import net.minecraft.network.protocol.game.ClientboundAnimatePacket;
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
+import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.server.level.ServerLevel;
@@ -118,6 +119,7 @@ public class npc implements CommandExecutor, Listener {
         return false;
     }else if(cmd.getName().equalsIgnoreCase("setnpc")){
         Player p = (Player) sender;
+        if(plugin.NPCDeplace.size() != 0){
         for(NPCDeplace npcDeplace : plugin.NPCDeplace){
             if(npcDeplace.getPlayer() == p){
                 for(MAINPC npc : plugin.npc.getNpc()){
@@ -135,11 +137,40 @@ public class npc implements CommandExecutor, Listener {
                                 ServerNPC.getGameProfile().getProperties().removeAll("textures");
                                 ServerNPC.getGameProfile().getProperties().put("textures",
                                 new Property("textures", npc.getTextureValue(), npc.getTextureSignature()));
+                                NPCUtils.sendForAll(new ClientboundRemoveEntitiesPacket(npc.getEntityID()));
+                                NPCUtils.sendForAll(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.REMOVE_PLAYER,ServerNPC));
+                                ServerNPC.setPos(p.getLocation().getX(), p.getLocation().getY(),
+                                p.getLocation().getZ());
+                                ServerNPC.setXRot(p.getLocation().getYaw());
+                                ServerNPC.setYRot(p.getLocation().getPitch());
+                                ServerNPC.setYBodyRot(p.getLocation().getYaw());
+                                ServerNPC.setYHeadRot(p.getLocation().getYaw());
+                                NPCUtils.sendForAll(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER,
+                                ServerNPC));
+                                NPCUtils.sendForAll(new ClientboundAddPlayerPacket(ServerNPC));
+                                NPCUtils.sendForAll(new ClientboundTeleportEntityPacket(ServerNPC));
+                                NPCUtils.sendForAll(new ClientboundMoveEntityPacket.Rot(npc.getEntityID(),
+                                NPCUtils.toRawYaw(npc.getConpc().getYaw()),
+                                NPCUtils.toRawYaw(npc.getConpc().getPitch()), true));
+                                NPCUtils.sendForAll(new ClientboundRotateHeadPacket(ServerNPC, NPCUtils.toRawYaw(npc.getConpc().getYaw())));
+                                NPCUtils.sendForAll(new ClientboundAnimatePacket(ServerNPC, ClientboundAnimatePacket.SWING_MAIN_HAND));
+                                npc.setConpc(new CONPC(p.getLocation().getX(), p.getLocation().getY(),
+                                p.getLocation().getZ(), p.getLocation().getYaw(), p.getLocation().getPitch()));
+                                npcDeplace.getBar().removePlayer(p);
+                                plugin.NPCDeplace.remove(npcDeplace);
+                                break;
                     }
                 }
+                FileUtils.saveFile(
+                    new File(new File(plugin.getDataFolder(), plugin.getConfig().getString("repertory.main")),
+                    "NPC.json"), 
+                    plugin.npc);
                 break;
             }
         }
+    }else{
+        p.sendMessage("");
+    }
     }}
     return false;}
 }

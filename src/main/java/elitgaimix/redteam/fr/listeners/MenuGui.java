@@ -5,15 +5,22 @@ import elitgaimix.redteam.fr.fonction.NPCUtils;
 import elitgaimix.redteam.fr.json.FileUtils;
 import elitgaimix.redteam.fr.json.load.EditorSign;
 import elitgaimix.redteam.fr.json.load.EditorSignEnum;
+import elitgaimix.redteam.fr.json.load.NPCDeplace;
 import elitgaimix.redteam.fr.json.npc.MAINPC;
 import elitgaimix.redteam.fr.json.profile.Profile;
+import net.minecraft.network.protocol.game.ClientboundAddPlayerPacket;
+import net.minecraft.network.protocol.game.ClientboundAnimatePacket;
+import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerCombatKillPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
+import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
+import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.io.File;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 
@@ -23,8 +30,12 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -102,6 +113,35 @@ public class MenuGui implements Listener {
         Player player = e.getPlayer();
         File file = new File(saveDir, player.getName() + ".json");
         Profile profile = FileUtils.openProfileFile(file, player);
+        Player p = e.getPlayer();
+        for(MAINPC allnpc : plugin.npc.getNpc()){
+            ServerLevel nmsworld = ((CraftWorld) Bukkit.getServer().getWorld(allnpc.getWorld())).getHandle();
+            ServerPlayer npc = new ServerPlayer(((CraftServer) Bukkit.getServer()).getServer(), nmsworld,
+                    new GameProfile(UUID.randomUUID(), allnpc.getName()), null);
+            npc.setPos(allnpc.getConpc().getX(), allnpc.getConpc().getY(),
+                    allnpc.getConpc().getZ());
+            npc.setXRot(allnpc.getConpc().getYaw());
+            npc.setYRot(allnpc.getConpc().getPitch());
+            npc.setYBodyRot(allnpc.getConpc().getYaw());
+            npc.setYHeadRot(allnpc.getConpc().getYaw());
+            npc.setId(allnpc.getEntityID());
+
+            npc.getGameProfile().getProperties().removeAll("textures");
+            npc.getGameProfile().getProperties().put("textures",
+                    new Property("textures", allnpc.getTextureValue(), allnpc.getTextureSignature()));
+            ((CraftPlayer) p).getHandle().connection
+                  .send(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER,
+                        npc));
+            ((CraftPlayer) p).getHandle().connection.send(new ClientboundAddPlayerPacket(npc));
+            ((CraftPlayer) p).getHandle().connection.send(new ClientboundTeleportEntityPacket(npc));
+            ((CraftPlayer) p).getHandle().connection.send(new ClientboundMoveEntityPacket.Rot(npc.getId(),
+                    NPCUtils.toRawYaw(allnpc.getConpc().getYaw()),
+                    NPCUtils.toRawYaw(allnpc.getConpc().getPitch()), true));
+            ((CraftPlayer) p).getHandle().connection
+                    .send(new ClientboundRotateHeadPacket(npc, NPCUtils.toRawYaw(allnpc.getConpc().getYaw())));
+            ((CraftPlayer) p).getHandle().connection
+                    .send(new ClientboundAnimatePacket(npc, ClientboundAnimatePacket.SWING_MAIN_HAND));
+        }
         if (Boolean.TRUE
                 .equals(profile.getBanmap1() && profile.getBanmap2() && profile.getBanmap3() && profile.getBanmap4())) {
             player.kickPlayer("Vous êtes banni de toute les map");
@@ -139,6 +179,16 @@ public class MenuGui implements Listener {
         Inventory inv = e.getInventory();
         String invname = e.getView().getTitle();
         if (item != null) {
+            if(item.getType() == Material.ENDER_PEARL && item.getItemMeta().getDisplayName().equalsIgnoreCase("§aMove NPC") && p.hasPermission("redteam.npc")){
+                e.setCancelled(true);
+                p.closeInventory();
+                p.sendMessage(ChatColor.GREEN + "Vous êtes en train de déplacer un npc(faite \"/setnpc\" pour set la position)");
+                BossBar bar = Bukkit.createBossBar("", BarColor.GREEN,BarStyle.SEGMENTED_6);
+                bar.setTitle(ChatColor.RED + "Vous êtes en train de déplacer un npc(faite \"/setnpc\" pour set la position)");
+                bar.setVisible(true);
+                bar.addPlayer(p);
+                plugin.NPCDeplace.add(new NPCDeplace(Integer.parseInt(invname), p,bar));    
+            }
             if(item.getType() == Material.BARRIER && item.getItemMeta().getDisplayName().equalsIgnoreCase("§4Delete NPC") && p.hasPermission("redteam.npc")){
                 int EntityID = Integer.parseInt(invname);
                 e.setCancelled(true);
