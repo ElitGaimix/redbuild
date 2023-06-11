@@ -2,28 +2,39 @@ package elitgaimix.redteam.fr.json.Plot;
 
 import java.util.List;
 
+import org.bukkit.Chunk;
+
 public class Plot {
-    private Integer coX;
-    private Integer coZ;
+    private Integer X;
+    private Integer Z;
+    private Chunk chunk;
     private Boolean take;
     private Integer tail;
     private String player;
     private List<PlotFusion> plotFusion;
 
-    public Integer getCoX() {
-        return this.coX;
+    public Integer getX() {
+        return this.X;
     }
 
-    public void setCoX(Integer coX) {
-        this.coX = coX;
+    public void setX(Integer X) {
+        this.X = X;
     }
 
-    public Integer getCoZ() {
-        return this.coZ;
+    public Integer getZ() {
+        return this.Z;
     }
 
-    public void setCoZ(Integer coZ) {
-        this.coZ = coZ;
+    public void setZ(Integer Z) {
+        this.Z = Z;
+    }
+
+    public Chunk getChunk() {
+        return this.chunk;
+    }
+
+    public void setChunk(Chunk chunk) {
+        this.chunk = chunk;
     }
 
     public Boolean isTake() {
@@ -62,9 +73,10 @@ public class Plot {
         this.plotFusion = plotFusion;
     }
 
-    public Plot(Integer coX, Integer coZ, Boolean take, Integer tail, String player, List<PlotFusion> plotFusion) {
-        this.coX = coX;
-        this.coZ = coZ;
+    public Plot(Integer X, Integer Z, Chunk chunk, Boolean take, Integer tail, String player, List<PlotFusion> plotFusion) {
+        this.X = X;
+        this.Z = Z;
+        this.chunk = chunk;
         this.take = take;
         this.tail = tail;
         this.player = player;

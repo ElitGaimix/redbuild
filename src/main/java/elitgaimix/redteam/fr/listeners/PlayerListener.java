@@ -2,7 +2,6 @@ package elitgaimix.redteam.fr.listeners;
 
 import java.io.File;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -33,9 +32,12 @@ import com.mojang.authlib.properties.Property;
 import elitgaimix.redteam.fr.Plugin;
 import elitgaimix.redteam.fr.fonction.NPCUtils;
 import elitgaimix.redteam.fr.json.FileUtils;
+import elitgaimix.redteam.fr.json.Plot.Plot;
+import elitgaimix.redteam.fr.json.Plot.PlotFusion;
 import elitgaimix.redteam.fr.json.load.EditorSign;
 import elitgaimix.redteam.fr.json.load.EditorSignEnum;
 import elitgaimix.redteam.fr.json.npc.MAINPC;
+import elitgaimix.redteam.fr.json.profile.AddPlot;
 import elitgaimix.redteam.fr.json.profile.Profile;
 import elitgaimix.redteam.fr.json.profile.UserPlot;
 import elitgaimix.redteam.fr.npc.PlayerInteracteAtNPCEvent;
@@ -44,6 +46,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
+import net.md_5.bungee.api.ChatColor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundAddPlayerPacket;
@@ -198,23 +201,31 @@ public class PlayerListener implements Listener {
                     ItemStack item = new ItemStack(Material.BARRIER, 1);
                     ItemMeta itemm = item
                             .getItemMeta();
-                            itemm.setDisplayName("§4Delete NPC");
+                    itemm.setDisplayName("§4Delete NPC");
                     item.setItemMeta(itemm);
                     inv.setItem(4, item);
+                    
 
                     ItemStack item1 = new ItemStack(Material.WRITABLE_BOOK, 1);
                     ItemMeta itemm1 = item1
                             .getItemMeta();
-                            itemm1.setDisplayName("§dRename NPC");
-                            item1.setItemMeta(itemm1);
+                    itemm1.setDisplayName("§dRename NPC");
+                    item1.setItemMeta(itemm1);
                     inv.setItem(3, item1);  
                                     
                     ItemStack item2 = new ItemStack(Material.ENDER_PEARL, 1);
                     ItemMeta itemm2 = item2
                             .getItemMeta();
-                            itemm2.setDisplayName("§aMove NPC");
-                            item2.setItemMeta(itemm2);
+                    itemm2.setDisplayName("§aMove NPC");
+                    item2.setItemMeta(itemm2);
                     inv.setItem(5, item2);
+
+                    ItemStack item3 = new ItemStack(Material.ENDER_PEARL, 1);
+                    ItemMeta itemm3 = item3
+                            .getItemMeta();
+                    itemm3.setDisplayName("§aMove NPC");
+                    item3.setItemMeta(itemm3);
+                    inv.setItem(5, item3);
                     p.openInventory(inv);
                     break;
                 }
@@ -257,6 +268,7 @@ public class PlayerListener implements Listener {
             super.channelRead(channelHandlerContext, msg);
         }
     };
+    
     ChannelPipeline pipeline = NPCUtils.channel(player).pipeline();
     pipeline.addBefore("packet_handler", player.getName(), channelDuplexHandler);
     
@@ -391,20 +403,32 @@ public class PlayerListener implements Listener {
 
         Player p = e.getPlayer();
         if ((e.getAction().equals(Action.RIGHT_CLICK_BLOCK) || e.getAction().equals(Action.LEFT_CLICK_BLOCK))
-                && p.hasPermission("redteam.build") != true) {
+                && !p.hasPermission("redteam.build")) {
+                    e.setCancelled(true);
+                if(p.getWorld() == Bukkit.getWorld(plugin.getConfig().getString("plot.world"))){
             Chunk PlayerChunk = e.getClickedBlock().getChunk();
             Profile profile = FileUtils.openProfileFile(new File(saveDir, p.getName() + ".json"), p);
-            UserPlot plot = profile.getPlot();
+
             int coX = 0;
             int coZ = 0;
             int n = 0;
             boolean Players = false;
             boolean fin = false;
+            //a refaire !
             while (fin != true) {
+                UserPlot plot = null;
+                AddPlot addplot = null;
+                if (profile.getPlot().size() > n) {
+                 plot = profile.getPlot().get(n);
+             } else if (profile.getAddplot().size() > n) {
+                 addplot = profile.getAddplot().get(n);
+                }else{
+                    fin= true;
+                }
                 try {
-                    if (plot.getCoX().size() > n) {
-                        coX = plot.getCoX().get(n);
-                        coZ = plot.getCoZ().get(n);
+                    if(plot != null){
+                        coX = plot.getCoX();
+                        coZ = plot.getCoZ();
                         if ((coX == PlayerChunk.getX() + 1 || coX == PlayerChunk.getX()
                                 || coX == PlayerChunk.getX() - 1)
                                 && (coZ == PlayerChunk.getZ() + 1 || coZ == PlayerChunk.getZ()
@@ -412,31 +436,34 @@ public class PlayerListener implements Listener {
                             Players = true;
                             fin = true;
                         }
-                    } else if (profile.getAddplot().getCoX().size() > n) {
-                        coX = profile.getAddplot().getCoX().get(n);
-                        coZ = profile.getAddplot().getCoX().get(n);
+                    }else if(addplot != null){
+                        coX = addplot.getCoX();
+                        coZ = addplot.getCoX();
                         if ((coX == PlayerChunk.getX() + 1 || coX == PlayerChunk.getX()
                                 || coX == PlayerChunk.getX() - 1)
                                 && (coZ == PlayerChunk.getZ() + 1 || coZ == PlayerChunk.getZ()
                                         || coZ == PlayerChunk.getZ() - 1)) {
-                            if (Bukkit.getPlayer(profile.getAddplot().getPlayer().get(n)) != null
-                                    || Boolean.TRUE.equals(profile.getAddplot().getTrust().get(n))) {
+                            if (Bukkit.getPlayer(addplot.getPlayer()) != null
+                                    || Boolean.TRUE.equals(addplot.getTrust())) {
                                 Players = true;
                             }
                             fin = true;
                         }
-                    } else {
-                        fin = true;
                     }
                     n++;
 
                 } catch (Exception er) {
-                    er.printStackTrace();
                     Players = false;
                     fin = true;
 
                 }
 
+            }
+            Plot plot = FileUtils.getPlot(p);
+            for(PlotFusion pFusion : plot.getPlotFusion()){
+                if(pFusion){
+
+                }
             }
             if (Players != true) {
                 e.setCancelled(true);
@@ -446,5 +473,6 @@ public class PlayerListener implements Listener {
 
             }
         }
+    }
     }
 }
