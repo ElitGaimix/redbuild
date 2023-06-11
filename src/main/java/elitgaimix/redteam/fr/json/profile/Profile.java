@@ -2,12 +2,15 @@ package elitgaimix.redteam.fr.json.profile;
 
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class Profile {
     private UUID uuid;
-    private UserPlot plot;
-    private AddPlot addplot;
+    private int plotnombre;
+    private List<UserPlot> plot;
+    private List<AddPlot> addplot;
     private Boolean menu;
     private Boolean banmap1;
     private Boolean banmap2;
@@ -22,19 +25,27 @@ public class Profile {
         this.uuid = uuid;
     }
 
-    public UserPlot getPlot() {
+    public int getPlotnombre() {
+        return this.plotnombre;
+    }
+
+    public void setPlotnombre(int plotnombre) {
+        this.plotnombre = plotnombre;
+    }
+
+    public List<UserPlot> getPlot() {
         return this.plot;
     }
 
-    public void setPlot(UserPlot plot) {
+    public void setPlot(List<UserPlot> plot) {
         this.plot = plot;
     }
 
-    public AddPlot getAddplot() {
+    public List<AddPlot> getAddplot() {
         return this.addplot;
     }
 
-    public void setAddplot(AddPlot addplot) {
+    public void setAddplot(List<AddPlot> addplot) {
         this.addplot = addplot;
     }
 
@@ -98,9 +109,9 @@ public class Profile {
         this.banmap4 = banmap4;
     }
 
-    public Profile(UUID uuid, UserPlot plot, AddPlot addplot, Boolean menu, Boolean banmap1, Boolean banmap2,
-            Boolean banmap3, Boolean banmap4) {
+    public Profile(UUID uuid, int plotnombre, List<UserPlot> plot, List<AddPlot> addplot, Boolean menu, Boolean banmap1, Boolean banmap2, Boolean banmap3, Boolean banmap4) {
         this.uuid = uuid;
+        this.plotnombre = plotnombre;
         this.plot = plot;
         this.addplot = addplot;
         this.menu = menu;
@@ -110,8 +121,11 @@ public class Profile {
         this.banmap4 = banmap4;
     }
 
+    
+    
+
     public static Profile createProfile(Player p) {
-        return new Profile(p.getUniqueId(),
-                UserPlot.createPlotJson(), AddPlot.createPlotJson(), true, false, false, false, false);
+        return new Profile(p.getUniqueId(),0,
+                new ArrayList<UserPlot>(), new ArrayList<AddPlot>(), true, false, false, false, false);
     }
 }

@@ -1,66 +1,61 @@
 package elitgaimix.redteam.fr.json.profile;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class AddPlot {
-    private List<Integer> coX;
-    private List<Integer> coZ;
-    private List<Integer> taille;
-    private List<Boolean> trust;
-    private List<String> player;
+    private Integer coX;
+    private Integer coZ;
+    private Integer taille;
+    private Boolean trust;
+    private String player;
 
-    public List<Integer> getCoX() {
+    public Integer getCoX() {
         return this.coX;
     }
 
-    public void setCoX(List<Integer> coX) {
+    public void setCoX(Integer coX) {
         this.coX = coX;
     }
 
-    public List<Integer> getCoZ() {
+    public Integer getCoZ() {
         return this.coZ;
     }
 
-    public void setCoZ(List<Integer> coZ) {
+    public void setCoZ(Integer coZ) {
         this.coZ = coZ;
     }
 
-    public List<Integer> getTaille() {
+    public Integer getTaille() {
         return this.taille;
     }
 
-    public void setTaille(List<Integer> taille) {
+    public void setTaille(Integer taille) {
         this.taille = taille;
     }
 
-    public List<Boolean> getTrust() {
+    public Boolean isTrust() {
         return this.trust;
     }
 
-    public void setTrust(List<Boolean> trust) {
+    public Boolean getTrust() {
+        return this.trust;
+    }
+
+    public void setTrust(Boolean trust) {
         this.trust = trust;
     }
 
-    public List<String> getPlayer() {
+    public String getPlayer() {
         return this.player;
     }
 
-    public void setPlayer(List<String> player) {
+    public void setPlayer(String player) {
         this.player = player;
     }
 
-    public AddPlot(List<Integer> coX, List<Integer> coZ, List<Integer> taille, List<Boolean> trust,
-            List<String> player) {
+    public AddPlot(Integer coX, Integer coZ, Integer taille, Boolean trust, String player) {
         this.coX = coX;
         this.coZ = coZ;
         this.taille = taille;
         this.trust = trust;
         this.player = player;
-    }
-
-    public static AddPlot createPlotJson() {
-        return new AddPlot(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(),
-                new ArrayList<>());
     }
 }
