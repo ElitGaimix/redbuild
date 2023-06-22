@@ -74,23 +74,6 @@ public class Plugin extends JavaPlugin {
                     new File(new File(getDataFolder(), getConfig().getString("repertory.main")), "NPC.json"),
                     NPCJson.class);
         }
-        boolean fin = false;
-        File repertory = new File(getDataFolder(), getConfig().getString("repertory.player"));
-        String[] findfile = repertory.list();
-        int n = 0;
-        List<Profile> pr = new ArrayList<Profile>();
-        while (fin != true) {
-            try {
-                pr.add((Profile) FileUtils.openFile(
-                        new File(new File(getDataFolder(), getConfig().getString("repertory.player")), findfile[n]),
-                        Profile.class));
-                n++;
-            } catch (Exception e) {
-                fin = true;
-            }
-
-        }
-        playerfile.setProfile(pr);
 
     }
 

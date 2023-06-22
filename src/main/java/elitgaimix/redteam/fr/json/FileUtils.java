@@ -10,6 +10,8 @@ import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.WorldCreator;
+import org.bukkit.block.BlockFace;
 
 import elitgaimix.redteam.fr.json.Plot.Plot;
 import elitgaimix.redteam.fr.json.Plot.PlotFile;
@@ -50,10 +52,28 @@ public class FileUtils {
         }
         return null;
     }
-    public static UserPlot getPlayerPlotByXZ(Profile profile,int X,int Z){
+    public static UserPlot getPlayerPlotByXZ(Profile profile,Chunk chunk){
+        int X = chunk.getX();
+        int Z = chunk.getZ();
         int coX;
         int coZ;
         for(UserPlot plot : profile.getPlot()){
+            coX = plot.getCoX();
+                        coZ = plot.getCoZ();
+                        if ((coX == X + 1 || coX == X || coX == X - 1)
+                            && (coZ == Z + 1 || coZ == Z || coZ == Z - 1)) {
+                            return plot;
+                        }
+        }
+        return null;
+    }
+
+    public static AddPlot getPlayerAddPlotByXZ(Profile profile,Chunk chunk){
+        int X = chunk.getX();
+        int Z = chunk.getZ();
+        int coX;
+        int coZ;
+        for(AddPlot plot : profile.getAddplot()){
             coX = plot.getCoX();
                         coZ = plot.getCoZ();
                         if ((coX == X + 1 || coX == X || coX == X - 1)
@@ -101,7 +121,9 @@ public class FileUtils {
             }
             return null;
         }
-        public static Plot getPlotByXZ(int X,int Z){
+        public static Plot getPlotByXZ(Chunk chunk){
+        int X = chunk.getX();
+        int Z = chunk.getZ();
         int coX;
         int coZ;
         for(Plot plot : plugin.plotfile.getPlot()){
@@ -114,7 +136,6 @@ public class FileUtils {
             }
             return null;
         }
-
 
 
     public static <T> Object openFile(File file, Class<T> clss) {
@@ -137,35 +158,139 @@ public class FileUtils {
             return profile;
         }
     }
+    public static PlotFusion getPlayerPlotFusion(Player p,Profile profile){
+        Plot plot = FileUtils.getPlot(p);
+            if(plot != null){
+            for(PlotFusion pFusion : plot.getPlotFusion()){
+                Chunk chunk = p.getWorld().getChunkAt( pFusion.getCoX()*16, pFusion.getCoZ()*16);
+                if(FileUtils.getPlayerPlotByXZ(profile, chunk) != null || FileUtils.getPlayerAddPlotByXZ(profile, chunk) != null){
+                    return pFusion;
+                }
+            }}
+            return null;
+    }
+
+     public static PlotFusion getPlayerPlotFusionByXZ(Chunk chunk,Profile profile){
+        Plot plot = FileUtils.getPlotByXZ(chunk);
+            if(plot != null){
+            for(PlotFusion pFusion : plot.getPlotFusion()){
+                chunk = chunk.getWorld().getChunkAt( pFusion.getCoX()*16, pFusion.getCoZ()*16);
+                if(FileUtils.getPlayerPlotByXZ(profile, chunk) != null || FileUtils.getPlayerAddPlotByXZ(profile, chunk) != null){
+                    return pFusion;
+                }
+            }}
+            return null;
+    }
+
+    //pour les CO: on commence par les CO plus proche de l'autre plot et ensuite les plus proche du plot du joueur
+    public static void FillPlotBlock(int X,int Z, int OX,int OZ,int Ymax,BlockFace bf,Material Mmat,Material Bmat,World world){
+        int X1 = 0;
+        int X2 = 0;
+        int Z1 = 0;
+        int Z2 = 0;
+        boolean a = true;
+                if(bf == BlockFace.EAST){
+                    X1 = X;
+                    Z1 = Z + 1;
+                    X2 = OX;
+                    Z2 = OZ - 1;
+                    FileUtils.fillBlock(X, -63,
+                                Z, OX, Ymax,
+                                Z, Bmat,
+                                world);
+
+                     FileUtils.fillBlock(OX, -63,
+                                OZ, X, Ymax,
+                                OZ, Bmat,
+                                world);
+                }else if(bf == BlockFace.WEST ){
+                    X1 = X ;
+                    Z1 = Z- 1;
+                    X2 = OX;
+                    Z2 = OZ + 1;
+                    FileUtils.fillBlock(X, -63,
+                                Z, OX, Ymax,
+                                Z ,Bmat,
+                                world);
+
+                     FileUtils.fillBlock(OX, -63,
+                                OZ, X, Ymax,
+                                OZ, Bmat,
+                                world);
+                }else if(bf == BlockFace.SOUTH ){
+                    X1 = X + 1;
+                    Z1 = Z;
+                    X2 = OX - 1;
+                    Z2 = OZ;
+                    FileUtils.fillBlock(X, -63,
+                                Z, X, Ymax,
+                                OZ, Bmat,
+                                world);
+
+                     FileUtils.fillBlock(OX, -63,
+                                OZ, OX, Ymax,
+                                Z, Bmat,
+                                world);
+                }else if(bf == BlockFace.NORTH ){
+                    X1 = X - 1;
+                    Z1 = Z;
+                    X2 = OX + 1;
+                    Z2 = OZ;
+                    FileUtils.fillBlock(X, -63,
+                                Z, X, Ymax,
+                                OZ, Bmat,
+                                world);
+
+                     FileUtils.fillBlock(OX, -63,
+                                OZ, OX, Ymax,
+                                Z, Bmat,
+                                world);
+                }else{
+                    a = false;
+                }
+                if(a){
+                FileUtils.fillBlock(X1, -63,
+                                Z1, X2, Ymax,
+                                Z2, Mmat,
+                                world);
+
+                     FileUtils.fillBlock(X1, Ymax + 1,
+                                Z1, X2, 255,
+                                Z2, Material.AIR,
+                                world);
+                            }
+    }
+
 
     public static void createPlotFile(File file, Plugin pl) {
         int bx = pl.getConfig().getInt("plot.cornerX");
         int bz = pl.getConfig().getInt("plot.cornerZ"); 
         List<Plot> plot = new ArrayList<>();
         boolean fin = false;
+        new WorldCreator(pl.getConfig().getString("plot.world")).createWorld();
         while (!fin) {
             if (bz == pl.getConfig().getInt("plot.lastcornerZ")
                     && bx != pl.getConfig().getInt("plot.lastcornerX")) {
                 if (pl.getConfig().getInt("plot.cornerX") > pl.getConfig().getInt("plot.lastcornerX")) {
-                    plot.add(new Plot((bx/4), (bz/4), Bukkit.getServer().getWorld(pl.getConfig().getString("plot.world")).getChunkAt(bx, bz),false, pl.getConfig().getInt("plot.tail"), "",
+                    plot.add(new Plot((bx/4), (bz/4),false, pl.getConfig().getInt("plot.tail"), "",
                             new ArrayList<PlotFusion>()));
                     bx = bx - (pl.getConfig().getInt("plot.tail") * 2) - pl.getConfig().getInt("plot.bordertail") - 1;
 
                 }
                 if (pl.getConfig().getInt("plot.cornerX") < pl.getConfig().getInt("plot.lastcornerX")) {
-                    plot.add(new Plot((bx/4), (bz/4), Bukkit.getServer().getWorld(pl.getConfig().getString("plot.world")).getChunkAt(bx, bz),false, pl.getConfig().getInt("plot.tail"), "", null));
+                    plot.add(new Plot((bx/4), (bz/4),false, pl.getConfig().getInt("plot.tail"), "", null));
                     bx = bx + (pl.getConfig().getInt("plot.tail") * 2) + pl.getConfig().getInt("plot.bordertail") + 1;
                 }
                 bz = pl.getConfig().getInt("plot.cornerZ");
             } else {
                 if (bx == pl.getConfig().getInt("plot.lastcornerX")
                         && bz == pl.getConfig().getInt("plot.lastcornerZ")) {
-                    plot.add(new Plot((bx/4), (bz/4), Bukkit.getServer().getWorld(pl.getConfig().getString("plot.world")).getChunkAt(bx, bz),false, pl.getConfig().getInt("plot.tail"), "",
+                    plot.add(new Plot((bx/4), (bz/4),false, pl.getConfig().getInt("plot.tail"), "",
                             new ArrayList<PlotFusion>()));
                     fin = true;
 
                 } else {
-                    plot.add(new Plot((bx/4), (bz/4), Bukkit.getServer().getWorld(pl.getConfig().getString("plot.world")).getChunkAt(bx, bz),false, pl.getConfig().getInt("plot.tail"), "",
+                    plot.add(new Plot((bx/4), (bz/4),false, pl.getConfig().getInt("plot.tail"), "",
                             new ArrayList<PlotFusion>()));
                     if (bz > pl.getConfig().getInt("plot.lastcornerZ")) {
                         bz = bz - (pl.getConfig().getInt("plot.tail") * 2) - pl.getConfig().getInt("plot.bordertail")

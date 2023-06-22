@@ -6,11 +6,11 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.*;
-import org.bukkit.command.Command;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -51,36 +51,72 @@ public class PlotCommands implements CommandExecutor {
             Player p = (Player) sender;
             if (Objects.equals(this.plugin.getConfig().getString("plot.world"), p.getWorld().getName())) {
                 Plot plot = FileUtils.getPlot(p);
+                if(plot != null){
                 profile = FileUtils.openProfileFile(new File(saveDir2, p.getName() + ".json"), p);
                 Plot otherPlot = null;
-                if(p.getFacing() == BlockFace.EAST && FileUtils.getPlayerPlotByXZ(profile, (plot.getX() + 1) * 4 ,plot.getZ() * 4) != null){
-                    otherPlot = FileUtils.getPlotByXZ((plot.getX() + 1) * 4 ,plot.getZ() * 4);
-                }else if(p.getFacing() == BlockFace.WEST && FileUtils.getPlayerPlotByXZ(profile, (plot.getX() - 1) * 4 ,plot.getZ() * 4) != null){
-                    otherPlot = FileUtils.getPlotByXZ((plot.getX() - 1) * 4 ,plot.getZ() * 4);
-                }else if(p.getFacing() == BlockFace.SOUTH && FileUtils.getPlayerPlotByXZ(profile, plot.getX()* 4 ,(plot.getZ() + 1) * 4) != null){
-                    otherPlot = FileUtils.getPlotByXZ(plot.getX()* 4 ,(plot.getZ() + 1) * 4);
-                }else if(p.getFacing() == BlockFace.NORTH && FileUtils.getPlayerPlotByXZ(profile, plot.getX()* 4 ,(plot.getZ() - 1) * 4) != null){
-                    otherPlot = FileUtils.getPlotByXZ( plot.getX()* 4 ,(plot.getZ() - 1) * 4);
+                UserPlot oUserPlot = null;
+                int X = plot.getChunkX() * 16;
+                int Z = plot.getChunkZ() * 16;
+                int X1 = plot.getChunkX() * 16;
+                int Z1 = plot.getChunkZ() * 16;
+                if(p.getFacing() == BlockFace.EAST && FileUtils.getPlayerPlotByXZ(profile, p.getWorld().getChunkAt((plot.getX() + 1) * 4 ,plot.getZ() * 4)) != null){
+                    otherPlot = FileUtils.getPlotByXZ(p.getWorld().getChunkAt((plot.getX() + 1) * 4 ,plot.getZ() * 4));
+                    oUserPlot = FileUtils.getPlayerPlotByXZ(profile, p.getWorld().getChunkAt((plot.getX() + 1) * 4 ,plot.getZ() * 4));
+                    X = X + 48;
+                    Z = Z - 17;
+                    X1 = X1 + 32;
+                    Z1 = Z1 + 32;
+
+                }else if(p.getFacing() == BlockFace.WEST && FileUtils.getPlayerPlotByXZ(profile, p.getWorld().getChunkAt((plot.getX() - 1) * 4 ,plot.getZ() * 4)) != null){
+                    otherPlot = FileUtils.getPlotByXZ(p.getWorld().getChunkAt((plot.getX() - 1) * 4 ,plot.getZ() * 4));
+                    oUserPlot = FileUtils.getPlayerPlotByXZ(profile, p.getWorld().getChunkAt((plot.getX() - 1) * 4 ,plot.getZ() * 4));
+                     X = X - 33;
+                    Z = Z + 32;
+                    X1 = X1 - 17;
+                    Z1 = Z1 - 17;
+
+                }else if(p.getFacing() == BlockFace.SOUTH && FileUtils.getPlayerPlotByXZ(profile, p.getWorld().getChunkAt(plot.getX()* 4 ,(plot.getZ() + 1) * 4)) != null){
+                    otherPlot = FileUtils.getPlotByXZ(p.getWorld().getChunkAt(plot.getX()* 4 ,(plot.getZ() + 1) * 4));
+                    oUserPlot = FileUtils.getPlayerPlotByXZ(profile, p.getWorld().getChunkAt(plot.getX()* 4 ,(plot.getZ() + 1) * 4));
+                     X = X + 32;
+                    Z = Z + 33;
+                    X1 = X1 - 17;
+                    Z1 = Z1 + 32;
+
+                }else if(p.getFacing() == BlockFace.NORTH && FileUtils.getPlayerPlotByXZ(profile,p.getWorld().getChunkAt(plot.getX()* 4 ,(plot.getZ() - 1) * 4)) != null){
+                    otherPlot = FileUtils.getPlotByXZ( p.getWorld().getChunkAt(plot.getX()* 4 ,(plot.getZ() - 1) * 4));
+                    oUserPlot = FileUtils.getPlayerPlotByXZ(profile , p.getWorld().getChunkAt(plot.getX()* 4 ,(plot.getZ() - 1) * 4));
+                     X = X - 17;
+                    Z = Z - 33;
+                    X1 = X1 + 32;
+                    Z1 = Z1 - 17;
                 }
-                if(otherPlot != null){
+                
+                if(otherPlot != null && oUserPlot != null){
                     plugin.plotfile.getPlot().remove(plot);
                     plugin.plotfile.getPlot().remove(otherPlot);
-                    plot.getPlotFusion().add(new PlotFusion(otherPlot.getChunk().getX(), otherPlot.getChunk().getZ(), otherPlot.getTail()));
-                    otherPlot.getPlotFusion().add(new PlotFusion(plot.getChunk().getX(), plot.getChunk().getZ(), plot.getTail()));
+                    plot.getPlotFusion().add(new PlotFusion(otherPlot.getChunkX(), otherPlot.getChunkZ(), otherPlot.getTail()));
+                    otherPlot.getPlotFusion().add(new PlotFusion(plot.getChunkX(), plot.getChunkZ(), plot.getTail()));
                     plugin.plotfile.getPlot().add(otherPlot);
                     plugin.plotfile.getPlot().add(plot);
                     UserPlot userplot = FileUtils.getPlayerPlot(p, profile);
-                    UserPlot otherUserPlot = FileUtils.getPlayerPlotByXZ(profile, otherPlot.getChunk().getX(), otherPlot.getChunk().getZ());
+                    UserPlot otherUserPlot = oUserPlot;
                     profile.getPlot().remove(userplot);
                     profile.getPlot().remove(otherUserPlot);
-                    userplot.getFusions().add(new UserPlotFusion(otherPlot.getChunk().getX(), otherPlot.getChunk().getZ(), otherPlot.getTail()));
-                    otherUserPlot.getFusions().add(new UserPlotFusion(plot.getChunk().getX(), plot.getChunk().getZ(), plot.getTail()));
+                    
+                    
+                     FileUtils.FillPlotBlock(X, Z, X1, Z1, 0, p.getFacing(), Material.QUARTZ_BLOCK, Material.RED_WOOL, p.getWorld());
+                                
+                    userplot.getFusions().add(new UserPlotFusion(otherPlot.getChunkX(), otherPlot.getChunkZ(), otherPlot.getTail()));
+                    otherUserPlot.getFusions().add(new UserPlotFusion(plot.getChunkX(), plot.getChunkZ(), plot.getTail()));
                     profile.getPlot().add(otherUserPlot);
                     profile.getPlot().add(userplot);
                     FileUtils.saveFile(new File(saveDir, "Plot.json"), plugin.plotfile);
-                    p.sendMessage(ChatColor.GREEN + "Vous avez fusionner les plots");
+                    FileUtils.saveFile(new File(saveDir2, p.getName() + ".json"), profile);
+                    p.sendMessage(ChatColor.DARK_GREEN + "Vous avez fusionner les plots");
                 }
             }
+        }
         }
 
         if ((args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("trust")) && sender instanceof Player
@@ -216,8 +252,8 @@ public class PlotCommands implements CommandExecutor {
                     try {
                         p.teleport(new Location(
                                 Bukkit.getServer().getWorld(this.plugin.getConfig().getString("plot.world")),
-                                plot.getChunk().getX() * 16, 1,
-                                plot.getChunk().getZ() * 16));
+                                plot.getChunkX() * 16, 1,
+                                plot.getChunkZ() * 16));
                         p.sendMessage("§aTéléportation réussite");
                     } catch (Exception ex) {
                         p.sendMessage("§4La téléportation a échoué : " + ex.getMessage());
@@ -263,28 +299,28 @@ public class PlotCommands implements CommandExecutor {
                         FileUtils.saveFile(new File(saveDir, "Plot.json"), plots);
                         Plugin.plotfile = plots;
                         UserPlot userplot = FileUtils.getPlayerPlot(p, profile);
-                        FileUtils.fillBlock((plot.getChunk().getX() * 16 + 32), 0,
-                                (plot.getChunk().getZ() * 16 + 32), (plot.getChunk().getX() * 16 + 32), 0,
-                                (plot.getChunk().getZ() * 16 - 17), Material.RED_WOOL,
+                        FileUtils.fillBlock((plot.getChunkX() * 16 + 32), 0,
+                                (plot.getChunkZ() * 16 + 32), (plot.getChunkX() * 16 + 32), 0,
+                                (plot.getChunkZ() * 16 - 17), Material.RED_WOOL,
                                 p.getWorld());
-                        FileUtils.fillBlock((plot.getChunk().getX() * 16 + 32), 0,
-                                (plot.getChunk().getZ() * 16 - 17), (plot.getChunk().getX() * 16 - 17), 0,
-                                (plot.getChunk().getZ() * 16 - 17), Material.RED_WOOL,
+                        FileUtils.fillBlock((plot.getChunkX() * 16 + 32), 0,
+                                (plot.getChunkZ() * 16 - 17), (plot.getChunkX() * 16 - 17), 0,
+                                (plot.getChunkZ() * 16 - 17), Material.RED_WOOL,
                                 p.getWorld());
-                        FileUtils.fillBlock((plot.getChunk().getX() * 16 + 32), 0,
-                                (plot.getChunk().getZ() * 16 + 32), (plot.getChunk().getX() * 16 + -17), 0,
-                                (plot.getChunk().getZ() * 16 + 32), Material.RED_WOOL,
+                        FileUtils.fillBlock((plot.getChunkX() * 16 + 32), 0,
+                                (plot.getChunkZ() * 16 + 32), (plot.getChunkX() * 16 + -17), 0,
+                                (plot.getChunkZ() * 16 + 32), Material.RED_WOOL,
                                 p.getWorld());
-                        FileUtils.fillBlock((plot.getChunk().getX() * 16 - 17), 0,
-                                (plot.getChunk().getZ() * 16 + 32), (plot.getChunk().getX() * 16 + -17), 0,
-                                (plot.getChunk().getZ() * 16 - 17), Material.RED_WOOL,
+                        FileUtils.fillBlock((plot.getChunkX() * 16 - 17), 0,
+                                (plot.getChunkZ() * 16 + 32), (plot.getChunkX() * 16 + -17), 0,
+                                (plot.getChunkZ() * 16 - 17), Material.RED_WOOL,
                                 p.getWorld());
                         profile.getPlot().remove(userplot);
                         profile.setPlotnombre(profile.getPlotnombre() - 1);
                         FileUtils.saveFile(new File(saveDir2, p.getName() + ".json"), profile);
                         p.teleport(
-                                new Location(Bukkit.getServer().getWorld("flatroom"), plot.getChunk().getX() * 16 + 8, 0,
-                                        plot.getChunk().getZ() * 16 + 8));
+                                new Location(Bukkit.getServer().getWorld("flatroom"), plot.getChunkX() * 16 + 8, 0,
+                                        plot.getChunkZ() * 16 + 8));
                         p.sendMessage("§aVous avez pris le plot");
                     } else {
                         p.sendMessage("§4Il n'y a plus de plot disponible ! ! !");
@@ -332,6 +368,7 @@ public class PlotCommands implements CommandExecutor {
                 PlotFile plots = (PlotFile) FileUtils.openFile(new File(saveDir, "Plot.json"), PlotFile.class);
                 Plot plot;
                 profile = FileUtils.openProfileFile(new File(saveDir2, p.getName() + ".json"), p);
+                if(FileUtils.getPlayerPlot(p, profile) == null && FileUtils.getPlayerAddPlot(p, profile) == null && FileUtils.getPlayerPlotFusion(p, profile) == null){
                 if (profile.getPlotnombre() != 2 || p.isOp()) { 
                     try {
                         plot = FileUtils.getPlot(p);
@@ -341,22 +378,22 @@ public class PlotCommands implements CommandExecutor {
                             plugin.plotfile.getPlot().add(plot);
                             FileUtils.saveFile(new File(saveDir, "Plot.json"), plugin.plotfile);
                             Plugin.plotfile = plots;
-                            UserPlot userplot = new UserPlot(plot.getChunk().getX(), plot.getChunk().getZ(), 1, null);
-                            FileUtils.fillBlock((plot.getChunk().getX() * 16 + 32), 0,
-                                    (plot.getChunk().getZ() * 16 + 32), (plot.getChunk().getX() * 16 + 32), 0,
-                                    (plot.getChunk().getZ() * 16 - 17), Material.RED_WOOL,
+                            UserPlot userplot = new UserPlot(plot.getChunkX(), plot.getChunkZ(), 1, new ArrayList<UserPlotFusion>());
+                            FileUtils.fillBlock((plot.getChunkX() * 16 + 32), 0,
+                                    (plot.getChunkZ() * 16 + 32), (plot.getChunkX() * 16 + 32), 0,
+                                    (plot.getChunkZ() * 16 - 17), Material.RED_WOOL,
                                     p.getWorld());
-                            FileUtils.fillBlock((plot.getChunk().getX() * 16 + 32), 0,
-                                    (plot.getChunk().getZ() * 16 - 17), (plot.getChunk().getX() * 16 - 17), 0,
-                                    (plot.getChunk().getZ() * 16 - 17), Material.RED_WOOL,
+                            FileUtils.fillBlock((plot.getChunkX() * 16 + 32), 0,
+                                    (plot.getChunkZ() * 16 - 17), (plot.getChunkX() * 16 - 17), 0,
+                                    (plot.getChunkZ() * 16 - 17), Material.RED_WOOL,
                                     p.getWorld());
-                            FileUtils.fillBlock((plot.getChunk().getX() * 16 + 32), 0,
-                                    (plot.getChunk().getZ() * 16 + 32), (plot.getChunk().getX() * 16 + -17), 0,
-                                    (plot.getChunk().getZ() * 16 + 32), Material.RED_WOOL,
+                            FileUtils.fillBlock((plot.getChunkX() * 16 + 32), 0,
+                                    (plot.getChunkZ() * 16 + 32), (plot.getChunkX() * 16 + -17), 0,
+                                    (plot.getChunkZ() * 16 + 32), Material.RED_WOOL,
                                     p.getWorld());
-                            FileUtils.fillBlock((plot.getChunk().getX() * 16 - 17), 0,
-                                    (plot.getChunk().getZ() * 16 + 32), (plot.getChunk().getX() * 16 + -17), 0,
-                                    (plot.getChunk().getZ() * 16 - 17), Material.RED_WOOL,
+                            FileUtils.fillBlock((plot.getChunkX() * 16 - 17), 0,
+                                    (plot.getChunkZ() * 16 + 32), (plot.getChunkX() * 16 + -17), 0,
+                                    (plot.getChunkZ() * 16 - 17), Material.RED_WOOL,
                                     p.getWorld());
                             profile.getPlot().add(userplot);
                             profile.setPlotnombre(profile.getPlotnombre() + 1);
@@ -372,6 +409,9 @@ public class PlotCommands implements CommandExecutor {
                 } else {
                     p.sendMessage("§4Vous avez trop de plot");
                 }
+            }else{
+                p.sendMessage(ChatColor.RED + "Ce plot vous appartien");
+            }
             }
         }
         return false;

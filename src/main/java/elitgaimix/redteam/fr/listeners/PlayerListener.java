@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
@@ -32,21 +31,16 @@ import com.mojang.authlib.properties.Property;
 import elitgaimix.redteam.fr.Plugin;
 import elitgaimix.redteam.fr.fonction.NPCUtils;
 import elitgaimix.redteam.fr.json.FileUtils;
-import elitgaimix.redteam.fr.json.Plot.Plot;
-import elitgaimix.redteam.fr.json.Plot.PlotFusion;
 import elitgaimix.redteam.fr.json.load.EditorSign;
 import elitgaimix.redteam.fr.json.load.EditorSignEnum;
 import elitgaimix.redteam.fr.json.npc.MAINPC;
-import elitgaimix.redteam.fr.json.profile.AddPlot;
 import elitgaimix.redteam.fr.json.profile.Profile;
-import elitgaimix.redteam.fr.json.profile.UserPlot;
 import elitgaimix.redteam.fr.npc.PlayerInteracteAtNPCEvent;
 import elitgaimix.redteam.fr.npc.SignUpdateEvent;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import net.md_5.bungee.api.ChatColor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundAddPlayerPacket;
@@ -400,79 +394,24 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void OnPlayerUse(PlayerInteractEvent e) {
-
         Player p = e.getPlayer();
         if ((e.getAction().equals(Action.RIGHT_CLICK_BLOCK) || e.getAction().equals(Action.LEFT_CLICK_BLOCK))
                 && !p.hasPermission("redteam.build")) {
-                    e.setCancelled(true);
                 if(p.getWorld() == Bukkit.getWorld(plugin.getConfig().getString("plot.world"))){
-            Chunk PlayerChunk = e.getClickedBlock().getChunk();
-            Profile profile = FileUtils.openProfileFile(new File(saveDir, p.getName() + ".json"), p);
+            Profile profile = FileUtils.openProfileFile(new File(saveDir, p.getName() + ".json"), p);          
+            if(FileUtils.getPlayerPlotByXZ(profile, e.getClickedBlock().getLocation().getChunk()) == null 
+            && FileUtils.getPlayerAddPlotByXZ(profile, e.getClickedBlock().getLocation().getChunk()) == null 
+            && FileUtils.getPlayerPlotFusionByXZ(e.getClickedBlock().getLocation().getChunk(),profile) == null){
 
-            int coX = 0;
-            int coZ = 0;
-            int n = 0;
-            boolean Players = false;
-            boolean fin = false;
-            //a refaire !
-            while (fin != true) {
-                UserPlot plot = null;
-                AddPlot addplot = null;
-                if (profile.getPlot().size() > n) {
-                 plot = profile.getPlot().get(n);
-             } else if (profile.getAddplot().size() > n) {
-                 addplot = profile.getAddplot().get(n);
-                }else{
-                    fin= true;
-                }
-                try {
-                    if(plot != null){
-                        coX = plot.getCoX();
-                        coZ = plot.getCoZ();
-                        if ((coX == PlayerChunk.getX() + 1 || coX == PlayerChunk.getX()
-                                || coX == PlayerChunk.getX() - 1)
-                                && (coZ == PlayerChunk.getZ() + 1 || coZ == PlayerChunk.getZ()
-                                        || coZ == PlayerChunk.getZ() - 1)) {
-                            Players = true;
-                            fin = true;
-                        }
-                    }else if(addplot != null){
-                        coX = addplot.getCoX();
-                        coZ = addplot.getCoX();
-                        if ((coX == PlayerChunk.getX() + 1 || coX == PlayerChunk.getX()
-                                || coX == PlayerChunk.getX() - 1)
-                                && (coZ == PlayerChunk.getZ() + 1 || coZ == PlayerChunk.getZ()
-                                        || coZ == PlayerChunk.getZ() - 1)) {
-                            if (Bukkit.getPlayer(addplot.getPlayer()) != null
-                                    || Boolean.TRUE.equals(addplot.getTrust())) {
-                                Players = true;
-                            }
-                            fin = true;
-                        }
-                    }
-                    n++;
-
-                } catch (Exception er) {
-                    Players = false;
-                    fin = true;
-
-                }
-
-            }
-            Plot plot = FileUtils.getPlot(p);
-            for(PlotFusion pFusion : plot.getPlotFusion()){
-                if(pFusion){
-
-                }
-            }
-            if (Players != true) {
-                e.setCancelled(true);
+                
+                 e.setCancelled(true);
                 if (this.plugin.getConfig().getBoolean("message.break")) {
                     p.sendMessage("§4Vous n'avez pas la permission: §credteam.build");
                 }
-
+            }
+            }else{
+                e.setCancelled(true);
             }
         }
     }
     }
-}
