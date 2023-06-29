@@ -130,7 +130,7 @@ public class FileUtils {
                 coX = plot.getX() * 4;
                 coZ = plot.getZ() * 4;
                 if ((coX ==X + 1 || coX ==X || coX ==X - 1)
-                    && (coZ == X + 1 || coZ == X || coZ == X - 1)) {
+                    && (coZ == Z + 1 || coZ == Z || coZ == Z - 1)) {
                     return plot;
                 }           
             }
@@ -171,10 +171,23 @@ public class FileUtils {
     }
 
      public static PlotFusion getPlayerPlotFusionByXZ(Chunk chunk,Profile profile){
-        Plot plot = FileUtils.getPlotByXZ(chunk);
+        int X = chunk.getX();
+        int Z = chunk.getZ();
+        int coX;
+        int coZ;
+        Plot plot = null;
+        for(Plot pot : plugin.plotfile.getPlot()){
+                coX = pot.getX() * 4;
+                coZ = pot.getZ() * 4;
+                if ((coX == X + 2 || coX ==X || coX ==X - 2 || coX == X + 1 || coX ==X - 1)
+                    && (coZ == Z + 2 || coZ == Z || coZ == Z - 2 || coZ == Z + 1 || coZ == Z - 1)) {
+                        plot = pot;
+                    break;
+                }           
+            }
             if(plot != null){
             for(PlotFusion pFusion : plot.getPlotFusion()){
-                chunk = chunk.getWorld().getChunkAt( pFusion.getCoX()*16, pFusion.getCoZ()*16);
+                chunk = chunk.getWorld().getChunkAt( pFusion.getCoX(), pFusion.getCoZ());
                 if(FileUtils.getPlayerPlotByXZ(profile, chunk) != null || FileUtils.getPlayerAddPlotByXZ(profile, chunk) != null){
                     return pFusion;
                 }

@@ -373,6 +373,7 @@ public class PlotCommands implements CommandExecutor {
                     try {
                         plot = FileUtils.getPlot(p);
                         if (plot != null) {
+                            plugin.plotfile.getPlot().remove(plot);
                             plot.setTake(true);
                             plot.setPlayer(p.getName());
                             plugin.plotfile.getPlot().add(plot);

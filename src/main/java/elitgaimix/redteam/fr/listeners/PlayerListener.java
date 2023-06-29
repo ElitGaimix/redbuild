@@ -402,8 +402,6 @@ public class PlayerListener implements Listener {
             if(FileUtils.getPlayerPlotByXZ(profile, e.getClickedBlock().getLocation().getChunk()) == null 
             && FileUtils.getPlayerAddPlotByXZ(profile, e.getClickedBlock().getLocation().getChunk()) == null 
             && FileUtils.getPlayerPlotFusionByXZ(e.getClickedBlock().getLocation().getChunk(),profile) == null){
-
-                
                  e.setCancelled(true);
                 if (this.plugin.getConfig().getBoolean("message.break")) {
                     p.sendMessage("§4Vous n'avez pas la permission: §credteam.build");
